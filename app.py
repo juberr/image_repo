@@ -9,18 +9,19 @@ import requests as req
 
 UPLOAD_PATH = './images'
 app = Flask(__name__)
-CORS(app)
+CORS(app) # emplying flask_cors for local functionality
 app.config['UPLOAD_FOLDER'] = UPLOAD_PATH
 
 def get_conn():
-
+    #returns a connection to the database
     conn = sqlite3.connect('image_repo.db')
     cursor = conn.cursor()
 
     return conn, cursor
 
-# create connection to database and table if necessary
+
 def db_init():
+    # create SQL table if necessary
     conn, cursor = get_conn()
 
     conn.execute(create_query)
@@ -30,7 +31,7 @@ def db_init():
 
 @app.route('/images')
 def get_images():
-
+    
     conn, cursor = get_conn()
 
     resp = conn.execute(get_all_query)
@@ -43,26 +44,30 @@ def get_images():
 @app.route('/upload', methods=['POST'])
 def upload_images():
     if request.method == 'POST':
-        file = request.files['file']
+        file = request.files['file'] # receive file from the request
         if file:
+            save_path = os.path.join('static/', app.config['UPLOAD_FOLDER']) # path string where file will be saved
             filename = secure_filename(file.filename)
-            file.save(os.path.join('static/', app.config['UPLOAD_FOLDER'], filename))
+            if filename not in os.listdir(save_path): # verify there isn't a file with the same name in the directory
 
+                file.save(os.path.join(save_path, filename)) # save the file
 
-            conn, cursor = get_conn()
+                conn, cursor = get_conn() # update the database index
 
-            size = os.path.getsize(os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))/1000000
+                size = os.path.getsize(os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))/1000000
 
-            date = str(datetime.datetime.now())
+                date = str(datetime.datetime.now())
 
-            data = (date, size, filename, os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))
+                data = (date, size, filename, os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))
 
-            conn.execute(update_query, data)
-            conn.commit()
-            conn.close()
-            return jsonify({'response': 'uploaded!'})
+                conn.execute(update_query, data)
+                conn.commit()
+                conn.close()
 
-    return  jsonify({'response':'something went wrong'})
+                return jsonify({'response': 'uploaded!'})
+            else: return jsonify({'response': 'File name already exists.'})
+
+    return  jsonify({'response':'File upload error'})
 
 @app.route('/remove/<id>', methods=['DELETE'])
 def delete(id):
