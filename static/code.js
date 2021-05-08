@@ -1,25 +1,29 @@
-console.log('hello')
 
 
+let submitbtn = document.getElementById('submit')
 
-const input = document.getElementById('img');
-console.log(input)
-var bstrings = [];
-// get binary strings for uploaded files (accepts multiple)
-input.addEventListener("change", function () {
+submitbtn.addEventListener("click", e => {
+    e.preventDefault();
+    // define upload path
+    const endpoint = '/upload'
+    //get uploaded files
+    let uploadFiles = document.getElementById('img');
+    const form = document.getElementById('uploadForm');
+    const formData = new FormData();
+    const headers = new Headers();
 
-    let files = this.files;
+    headers.append('Content-Type', 'application/json')
 
-    for (i=0; i < files.length; i++) {
-        let reader = new FileReader();
+    const files = uploadFiles.files;
 
-        reader.onloadend = function () {
-            bstrings.push(reader.result)
-        }
-        
-        reader.readAsDataURL(files[i]);
-        
-    }
+    formData.append('file', files[0], 'test.png')
+    console.log(formData)
+    let req = new Request(endpoint, {method: 'POST', body: formData})
 
-    console.log(bstrings);
-});
+
+    fetch(req);
+
+
+    });
+    
+

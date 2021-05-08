@@ -7,9 +7,10 @@
 
 </head>
 <body>
-
-        <input type="file" id="img" name="img" accept="image/*" multiple>
-        <button>upload!</button>
+    <form class='form' id='uploadForm' enctype = 'multipart/form-data'>
+        <input type="file" id="img" name="img" accept="image/*">
+        <button id='submit'>upload!</button>
+    </form>
 
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>

@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, make_response, render_template, Response
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import sqlite3
 import os
@@ -8,6 +9,7 @@ import requests as req
 
 UPLOAD_PATH = './images'
 app = Flask(__name__)
+CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_PATH
 
 def get_conn():
@@ -38,29 +40,29 @@ def get_images():
     
     return {'response': data}
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload', methods=['POST'])
 def upload_images():
     if request.method == 'POST':
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save(os.path.join('static/', app.config['UPLOAD_FOLDER'], filename))
 
 
             conn, cursor = get_conn()
 
-            size = os.path.getsize(os.path.join(app.config['UPLOAD_FOLDER'], filename))/1000000
+            size = os.path.getsize(os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))/1000000
 
             date = str(datetime.datetime.now())
 
-            data = (date, size, filename, os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            data = (date, size, filename, os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))
 
             conn.execute(update_query, data)
             conn.commit()
             conn.close()
-            return 'uploaded!'
+            return jsonify({'response': 'uploaded!'})
 
-    return  'something went wrong'
+    return  jsonify({'response':'something went wrong'})
 
 @app.route('/remove/<id>', methods=['DELETE'])
 def delete(id):
