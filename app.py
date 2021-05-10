@@ -6,6 +6,7 @@ import os
 import datetime
 from queries import * 
 import requests as req
+from PIL import Image
 
 UPLOAD_PATH = './images'
 app = Flask(__name__)
@@ -31,7 +32,7 @@ def db_init():
 
 @app.route('/images')
 def get_images():
-    
+    # returns all images currently in database
     conn, cursor = get_conn()
 
     resp = conn.execute(get_all_query)
@@ -51,8 +52,12 @@ def upload_images():
             if filename not in os.listdir(save_path): # verify there isn't a file with the same name in the directory
 
                 file.save(os.path.join(save_path, filename)) # save the file
+                pic = Image.open(os.path.join(save_path, filename))
+                pic.thumbnail(size=(680, 400))
+                pic.save(f'./static/thumbnails/{filename}')
 
-                conn, cursor = get_conn() # update the database index
+
+                conn, cursor = get_conn() # update the database indexç
 
                 size = os.path.getsize(os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))/1000000
 
@@ -61,10 +66,12 @@ def upload_images():
                 data = (date, size, filename, os.path.join('static/',app.config['UPLOAD_FOLDER'], filename))
 
                 conn.execute(update_query, data)
+                resp = conn.execute('SELECT COUNT (*) from images')
+                count = resp.fetchall()
                 conn.commit()
                 conn.close()
 
-                return jsonify({'response': 'uploaded!'})
+                return jsonify(count=count, data=data)
             else: return jsonify({'response': 'File name already exists.'})
 
     return  jsonify({'response':'File upload error'})
@@ -74,17 +81,22 @@ def delete(id):
 
     # connect to db
     conn, cursor = get_conn()
+    
     #identify file path of id that needs to be deleted
-    index = req.get("http://127.0.0.1:5000/images").json()
-    delete_path = index['response'][0][-1]
-    delete_index = index['response'][0][0]
+    resp = conn.execute(find_query, id)
+    data = resp.fetchall()
+    
+
+    delete_path = data[0][4]
+    file_name = data[0][3]
     # delete from storage
     try:
         os.remove(delete_path)
+        os.remove('static/thumbnails/' + file_name)
     except FileNotFoundError: 
         print('file not found, skipping')
     # delete SQL indexing   
-    conn.execute(destroy_query, (delete_index,))
+    conn.execute(destroy_query, id)
     conn.commit()
     conn.close()
 
@@ -92,7 +104,9 @@ def delete(id):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # render front end with all current images
+    images = req.get('http://127.0.0.1:5000/images').json()['response']
+    return render_template('index.html', images=images)
 
 if __name__ == '__main__':
     db_init()

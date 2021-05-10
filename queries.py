@@ -8,3 +8,5 @@ update_query = """
 INSERT INTO images (date, size_mb, name, image_path) VALUES (?,?,?,?)"""
 
 destroy_query = """DELETE FROM images WHERE id = ?;"""
+
+find_query = """SELECT * FROM images where id = ?;"""

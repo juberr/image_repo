@@ -3,21 +3,46 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <title>Justin's Image Repo!</title>
 
 </head>
 <body>
-    <form class='form' id='uploadForm' enctype = 'multipart/form-data'>
-        <input type="file" id="img" name="img" accept="image/*">
-        <button id='upload'>upload!</button>
+    <div class='container'>
+    <div class="jumbotron text-center">
+            <h1>Justin's Image Repository</h1>      
+            <p>Shopify Summer Internship Challenge</p>
+    </div>
+    
+    <form id='uploadForm' enctype = 'multipart/form-data'>
+        <div class='custom-file'>
+        <input type="file" class='form-control-file' id="img" name="img" accept="image/*" multiple>
+        <button class="btn btn-success" id='upload'>Upload!</button>
+        </div>
     </form>
+    
 
-    <form class='form' id='deleteForm'>
-        <input type="number" id="nbr" name="nbr">
-        <button id='delete'>delete!</button>
-    </form>
-
-
+    <div class='row'>
+        {% for img in images %}
+        <div class='col-sm-4 {{img[0]}}'>
+        <div class="card" href="static/images/{{img[3]}}">
+            <a href="static/images/{{img[3]}}" target='_blank'>
+                <img src="static/thumbnails/{{img[3]}}" class="card-img-top img-responsive" alt="{{img[3]}}">
+            </a>
+            <div class="card-body">
+              <h5 class="card-title">{{img[3]}}</h5>
+              <p>Date Uploaded: {{img[1]}}</p>
+              <p>Size:{{img[2]}} MB</p>
+              <a href="static/images/{{img[3]}}" class="btn btn-primary" target="_blank">View Fullsize</a>
+              <a class="btn btn-danger delete" id='{{img[0]}}'>Delete Image</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+    </div>
+    </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.5.0/d3.js"></script>
         <script src='../static/code.js'></script>
 
